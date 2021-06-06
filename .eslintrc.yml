@@ -1,0 +1,32 @@
+parser: '@typescript-eslint/parser'
+parserOptions:
+  ecmaVersion: 2018
+  sourceType: module
+plugins:
+  - '@typescript-eslint'
+  - 'custom-rules'
+env:
+  es6: true
+  node: true
+  jest: true
+extends:
+  - 'eslint:recommended'
+  - 'plugin:@typescript-eslint/recommended'
+  - 'prettier'
+globals:
+  Atomics: readonly
+  SharedArrayBuffer: readonly
+rules:
+  '@typescript-eslint/explicit-member-accessibility': off
+  '@typescript-eslint/explicit-function-return-type': off
+  '@typescript-eslint/camelcase': off
+  '@typescript-eslint/no-parameter-properties': off
+  '@typescript-eslint/no-explicit-any': off
+  '@typescript-eslint/consistent-type-assertions':
+    [warn, { assertionStyle: 'as' }]
+  'no-console': warn
+  'custom-rules/no-findOne-by-id': error
+  'custom-rules/disallow-src-dist-import': error
+  'custom-rules/param-decorator-defined': error
+  'custom-rules/param-decorator-no-leading-colon': error
+  'custom-rules/disable-barreling': error

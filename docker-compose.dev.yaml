@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  prometheus-chia-exporter:
+    build:
+      context: './'
+      dockerfile: './Containerfile'
+    env_file: 'development.env'

@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+# Get node in to the env for Github Desktop
+ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin:#{Dir.pwd}/node_modules/.bin"
+
+# Check for hooks with different extensions
+file_without_ext = "dev/githooks/#{File.basename(__FILE__)}"
+if File.exist?("#{file_without_ext}.ts")
+  `/usr/bin/env ts-node "#{file_without_ext}.ts" #{ARGV.join(' ')}`
+elsif File.exist?("#{file_without_ext}.rb")
+  `/usr/bin/env ruby "#{file_without_ext}.rb" #{ARGV.join(' ')}`
+elsif File.exist?("#{file_without_ext}.js")
+  `/usr/bin/env node "#{file_without_ext}.js" #{ARGV.join(' ')}`
+elsif File.exist?("#{file_without_ext}.sh")
+  `./"#{file_without_ext}.sh" #{ARGV.join(' ')}`
+elsif File.exist?("#{file_without_ext}")
+  `./"#{file_without_ext}" #{ARGV.join(' ')}`
+else
+  puts "Custom commit hook not found by common-hook"
+end
+
+exit $?.exitstatus

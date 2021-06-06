@@ -1,0 +1,62 @@
+{
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "typescript.format.enable": false,
+  "javascript.format.enable": false,
+  "eslint.validate": [
+    "javascript",
+    { "language": "typescript", "autoFix": true }
+  ],
+  "ruby.format": false,
+  "[ruby]": {
+    "editor.formatOnSave": false
+  },
+  "dash.languageIdToDocsetMap": {
+    "typescript": [
+      "awsjs",
+      "backbone",
+      "bootstrap",
+      "chai",
+      "css",
+      "dojo",
+      "d3",
+      "ember",
+      "express",
+      "extjs",
+      "foundation",
+      "gulp",
+      "html",
+      "ionic",
+      "jasmine",
+      "javascript",
+      "jsdoc",
+      "knockout",
+      "lodash",
+      "loopback",
+      "marionette",
+      "meteor",
+      "mongoose",
+      "moment",
+      "moo",
+      "nestjs",
+      "nodejs",
+      "prototype",
+      "require",
+      "rxjs",
+      "sails",
+      "sencha",
+      "sinon",
+      "sproutcore",
+      "svg",
+      "typeorm",
+      "typescript",
+      "underscore",
+      "unity3d",
+      "yui",
+      "zepto"
+    ]
+  },
+  "cSpell.words": [
+    "Wekan",
+    "gsheets"
+  ]
+}
