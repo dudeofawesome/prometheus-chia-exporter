@@ -28,15 +28,21 @@ export class ConfigService {
     return ConfigService._instance;
   }
 
-  get(key: string): string {
-    const val = this.env_config[key];
-    if (val != null) {
-      return val;
+  get(key: string, def?: string): string {
+    const cached = this.env_config[key];
+    if (cached != null) {
+      return cached;
     } else if (process.env[key] != null) {
       this.env_config[key] = process.env[key];
       return this.env_config[key] as string;
+    } else if (def != null) {
+      return def;
     } else {
       throw new Error(`env var ${key} is undefined.`);
     }
+  }
+
+  set(key: string, value: string | undefined): void {
+    this.env_config[key] = value;
   }
 }
