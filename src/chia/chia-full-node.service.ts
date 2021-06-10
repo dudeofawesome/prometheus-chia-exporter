@@ -11,10 +11,16 @@ import { ChiaGetConnections } from '../types/chia-get-connections';
 @Injectable()
 export class ChiaFullNodeService {
   private logger: Logger = new Logger(ChiaFullNodeService.name);
+  private https_agent: Agent;
 
   private chia_full_node_synced = new Gauge({
     name: 'chia_full_node_synced',
     help: 'Whether or not the full node is synced (bool)',
+  });
+
+  private chia_full_node_syncing = new Gauge({
+    name: 'chia_full_node_syncing',
+    help: 'Whether or not the full node is syncing (bool)',
   });
 
   private chia_full_node_connections = new Gauge({
@@ -53,6 +59,12 @@ export class ChiaFullNodeService {
         ).toString(),
       );
     }
+
+    this.https_agent = new Agent({
+      cert: this.config_service.get('full_node_cert'),
+      key: this.config_service.get('full_node_key'),
+      rejectUnauthorized: false,
+    });
   }
 
   public async update_metrics(): Promise<void> {
@@ -67,13 +79,7 @@ export class ChiaFullNodeService {
         .post<ChiaBlockChainState>(
           `${root_url}/get_blockchain_state`,
           {},
-          {
-            httpsAgent: new Agent({
-              cert: this.config_service.get('full_node_cert'),
-              key: this.config_service.get('full_node_key'),
-              rejectUnauthorized: false,
-            }),
-          },
+          { httpsAgent: this.https_agent },
         )
         .pipe(map(res => res.data))
         .pipe(
@@ -90,18 +96,15 @@ export class ChiaFullNodeService {
           this.chia_full_node_synced.set(
             blockchain_state.blockchain_state.sync.synced ? 1 : 0,
           );
+          this.chia_full_node_syncing.set(
+            blockchain_state.blockchain_state.sync.sync_mode ? 1 : 0,
+          );
         }),
       this.http_service
         .post<ChiaGetConnections>(
           `${root_url}/get_connections`,
           {},
-          {
-            httpsAgent: new Agent({
-              cert: this.config_service.get('full_node_cert'),
-              key: this.config_service.get('full_node_key'),
-              rejectUnauthorized: false,
-            }),
-          },
+          { httpsAgent: this.https_agent },
         )
         .pipe(
           map(res => {

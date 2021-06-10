@@ -10,6 +10,13 @@ import { ChiaSignagePoints } from '../types/chia-signage-points';
 @Injectable()
 export class ChiaFarmerService {
   private logger: Logger = new Logger(ChiaFarmerService.name);
+  private https_agent: Agent;
+
+  private chia_farmer_signage_point_proofs = new Gauge({
+    name: 'chia_farmer_signage_point_proofs',
+    help: `Not 100% sure what this is, but maybe it's wins?`,
+    labelNames: ['challenge_chain', 'challenge_hash'] as ReadonlyArray<string>,
+  });
 
   constructor(
     private http_service: HttpService,
@@ -42,10 +49,15 @@ export class ChiaFarmerService {
         ).toString(),
       );
     }
+
+    this.https_agent = new Agent({
+      cert: this.config_service.get('farmer_cert'),
+      key: this.config_service.get('farmer_key'),
+      rejectUnauthorized: false,
+    });
   }
 
   public async update_metrics(): Promise<void> {
-    return;
     const root_url =
       'https://' +
       this.config_service.get('farmer_host', 'localhost') +
@@ -56,13 +68,7 @@ export class ChiaFarmerService {
       .post<ChiaSignagePoints>(
         `${root_url}/get_signage_points`,
         {},
-        {
-          httpsAgent: new Agent({
-            cert: this.config_service.get('farmer_cert'),
-            key: this.config_service.get('farmer_key'),
-            rejectUnauthorized: false,
-          }),
-        },
+        { httpsAgent: this.https_agent },
       )
       .pipe(
         map(res => {
@@ -73,6 +79,17 @@ export class ChiaFarmerService {
           }
         }),
       )
-      .toPromise();
+      .toPromise()
+      .then(signage_points => {
+        for (const point of signage_points) {
+          this.chia_farmer_signage_point_proofs.set(
+            {
+              challenge_chain: point.signage_point.challenge_chain_sp,
+              challenge_hash: point.signage_point.challenge_hash,
+            },
+            point.proofs.length,
+          );
+        }
+      });
   }
 }

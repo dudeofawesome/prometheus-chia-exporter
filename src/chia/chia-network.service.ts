@@ -10,6 +10,7 @@ import { ChiaBlockChainState } from '../types/chia-blockchain-state';
 @Injectable()
 export class ChiaNetworkService {
   private logger: Logger = new Logger(ChiaNetworkService.name);
+  private https_agent: Agent;
 
   private chia_network_space = new Gauge({
     name: 'chia_network_space',
@@ -57,6 +58,12 @@ export class ChiaNetworkService {
         ).toString(),
       );
     }
+
+    this.https_agent = new Agent({
+      cert: this.config_service.get('full_node_cert'),
+      key: this.config_service.get('full_node_key'),
+      rejectUnauthorized: false,
+    });
   }
 
   public async update_metrics(): Promise<void> {
@@ -70,13 +77,7 @@ export class ChiaNetworkService {
       .post<ChiaBlockChainState>(
         `${root_url}/get_blockchain_state`,
         {},
-        {
-          httpsAgent: new Agent({
-            cert: this.config_service.get('full_node_cert'),
-            key: this.config_service.get('full_node_key'),
-            rejectUnauthorized: false,
-          }),
-        },
+        { httpsAgent: this.https_agent },
       )
       .pipe(
         map(res => {

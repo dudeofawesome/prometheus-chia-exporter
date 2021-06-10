@@ -10,6 +10,7 @@ import { ChiaHarvesterPlots } from '../types/chia-harvester-plots';
 @Injectable()
 export class ChiaHarvesterService {
   private logger: Logger = new Logger(ChiaHarvesterService.name);
+  private https_agent: Agent;
 
   private chia_harvester_plot_count = new Gauge({
     name: 'chia_harvester_plot_count',
@@ -52,6 +53,12 @@ export class ChiaHarvesterService {
         ).toString(),
       );
     }
+
+    this.https_agent = new Agent({
+      cert: this.config_service.get('harvester_cert'),
+      key: this.config_service.get('harvester_key'),
+      rejectUnauthorized: false,
+    });
   }
 
   public async update_metrics(): Promise<void> {
@@ -65,13 +72,7 @@ export class ChiaHarvesterService {
       .post<ChiaHarvesterPlots>(
         `${root_url}/get_plots`,
         {},
-        {
-          httpsAgent: new Agent({
-            cert: this.config_service.get('harvester_cert'),
-            key: this.config_service.get('harvester_key'),
-            rejectUnauthorized: false,
-          }),
-        },
+        { httpsAgent: this.https_agent },
       )
       .pipe(
         map(res => {
