@@ -132,7 +132,7 @@ export class ChiaWalletService {
       )
       .toPromise()
       .then(farmed_amount => {
-        this.chia_wallet_farmed.set(farmed_amount.farmed_amount);
+        this.chia_wallet_farmed.set(farmed_amount.farmed_amount * 1e-12);
       });
   }
 
