@@ -6,12 +6,14 @@ import { readFileSync, existsSync } from 'fs';
 export class ConfigService {
   private static _instance: ConfigService;
 
-  private readonly env_config: Record<string, string | undefined>;
+  private readonly env_config: Record<string, string | boolean | undefined>;
 
   private constructor(file_path: string) {
     if (existsSync(file_path)) {
+      console.log(`${file_path} exists`);
       this.env_config = parse(readFileSync(file_path));
     } else {
+      console.log(`${file_path} doesn't exist`);
       this.env_config = {};
     }
   }
@@ -30,11 +32,33 @@ export class ConfigService {
 
   get(key: string, def?: string): string {
     const cached = this.env_config[key];
-    if (cached != null) {
+    if (cached != null && typeof cached === 'string') {
       return cached;
     } else if (process.env[key] != null) {
       this.env_config[key] = process.env[key];
       return this.env_config[key] as string;
+    } else if (def != null) {
+      return def;
+    } else {
+      throw new Error(`env var ${key} is undefined.`);
+    }
+  }
+
+  get_bool(key: string, def?: boolean): boolean {
+    const cached = this.env_config[key];
+    if (cached != null && typeof cached === 'boolean') {
+      return cached;
+    } else if (
+      typeof cached === 'string' &&
+      (cached === 'true' || cached === 'false')
+    ) {
+      let val = cached === 'true';
+      this.env_config[key] = val;
+      return val;
+    } else if (process.env[key] != null) {
+      let val = process.env[key] === 'true';
+      this.env_config[key] = val;
+      return val;
     } else if (def != null) {
       return def;
     } else {
