@@ -39,7 +39,13 @@ export class ChiaPlotterService {
       this.chia_plot_phase = new Gauge({
         name: 'chia_plot_phase',
         help: 'Phase of all in-progress plots',
-        labelNames: ['id', 'tmp', 'dst', 'k'] as ReadonlyArray<string>,
+        labelNames: [
+          'id',
+          'plotter',
+          'tmp',
+          'dst',
+          'k',
+        ] as ReadonlyArray<string>,
       });
     }
   }
@@ -115,19 +121,20 @@ export class ChiaPlotterService {
                 console.log(container.top);
               }
 
+              const pid = plot.pid.toString();
               const container = containers.find(
-                container => container.top.Processes[1] === plot.pid,
+                container => container.top.Processes[0][1] === pid,
               );
               if (container != null) {
-                extra_info.log_path = `/var/lib/docker/containers/${container.Id}/${container.Id}-json.log`;
-                const log_contents = (
-                  JSON.parse(
-                    `[${await readFile(extra_info.log_path, 'utf-8')}]`,
-                  ) as DockerJSONLogLine[]
-                ).map(line => line.log);
-                extra_info.log_contents = log_contents.join('\n');
-                extra_info.id = this.find_madmax_plot_id(log_contents);
-                extra_info.phase = this.find_madmax_plot_phase(log_contents);
+                const log_stream = await this.docker
+                  .getContainer(container.Id)
+                  .logs({ stdout: true, stderr: true });
+
+                extra_info.log_contents = log_stream.toString();
+
+                const split_logs = extra_info.log_contents.split('\n');
+                extra_info.id = this.find_madmax_plot_id(split_logs);
+                extra_info.phase = this.find_madmax_plot_phase(split_logs);
               } else {
                 throw new Error(`Couldn't find container of pid ${plot.pid}`);
               }
@@ -146,7 +153,13 @@ export class ChiaPlotterService {
       this.chia_plot_phase.reset();
       for (const plot of logged_plots) {
         this.chia_plot_phase.set(
-          { id: plot.short_id, tmp: plot.tmp, dst: plot.dst, k: plot.k },
+          {
+            id: plot.short_id,
+            plotter: plot.plotter,
+            tmp: plot.tmp,
+            dst: plot.dst,
+            k: plot.k,
+          },
           this.phase_str_to_float(plot.phase),
         );
       }
