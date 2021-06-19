@@ -14,8 +14,7 @@ WORKDIR /home/chiaprom/app
 
 COPY package.json .
 COPY yarn.lock .
-COPY eslint/ eslint/
-RUN yarn install
+RUN yarn install --prod
 
 COPY . .
 

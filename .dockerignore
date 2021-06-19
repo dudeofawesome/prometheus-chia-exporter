@@ -7,3 +7,10 @@ docker-compose*
 .gitignore
 .git
 .dockerignore
+.eslintrc
+.prettierrc
+*.env
+
+dev/
+eslint/
+test/
