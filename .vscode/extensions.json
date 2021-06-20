@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "ms-vscode.node-debug2",
+    "editorconfig.editorconfig",
+    "jdforsythe.add-new-line-to-files"
+  ]
+}
