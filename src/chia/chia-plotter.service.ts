@@ -4,6 +4,7 @@ import * as ps_list from 'ps-list';
 import { ProcessDescriptor } from 'ps-list';
 import { exec as execAsync } from 'child_process';
 import { readFile } from 'fs/promises';
+import { relative } from 'path';
 import { promisify } from 'util';
 const exec = promisify(execAsync);
 import * as Docker from 'dockerode';
@@ -122,15 +123,24 @@ export class ChiaPlotterService {
               }
 
               const pid = plot.pid.toString();
-              const container = containers.find(
+              const container_info = containers.find(
                 container => container.top.Processes[0][1] === pid,
               );
-              if (container != null) {
-                const log_stream = await this.docker
-                  .getContainer(container.Id)
-                  .logs({ stdout: true, stderr: true });
+              if (container_info != null) {
+                extra_info.log_contents = await this.docker
+                  .getContainer(container_info.Id)
+                  .logs({ stdout: true, stderr: true })
+                  .toString();
 
-                extra_info.log_contents = log_stream.toString();
+                const host_tmp = container_info.Mounts.find(
+                  mount => relative(mount.Destination, plot.tmp) === '',
+                )?.Source;
+                if (host_tmp) plot.tmp = host_tmp;
+
+                const host_dst = container_info.Mounts.find(
+                  mount => relative(mount.Destination, plot.dst) === '',
+                )?.Source;
+                if (host_dst) plot.dst = host_dst;
 
                 const split_logs = extra_info.log_contents.split('\n');
                 extra_info.id = this.find_madmax_plot_id(split_logs);
