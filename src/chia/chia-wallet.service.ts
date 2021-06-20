@@ -26,41 +26,41 @@ export class ChiaWalletService {
     private http_service: HttpService,
     private config_service: ConfigService,
   ) {
-    try {
-      this.config_service.get('WALLET_CERT');
-    } catch {
-      this.config_service.set(
-        'WALLET_CERT',
-        readFileSync(
-          this.config_service.get(
-            'WALLET_CERT_PATH',
-            `${process.env.HOME}/.chia/mainnet/config/ssl/wallet/private_wallet.crt`,
-          ),
-        ).toString(),
-      );
-    }
-
-    try {
-      this.config_service.get('WALLET_KEY');
-    } catch {
-      this.config_service.set(
-        'WALLET_KEY',
-        readFileSync(
-          this.config_service.get(
-            'WALLET_KEY_PATH',
-            `${process.env.HOME}/.chia/mainnet/config/ssl/wallet/private_wallet.key`,
-          ),
-        ).toString(),
-      );
-    }
-
-    this.https_agent = new Agent({
-      cert: this.config_service.get('WALLET_CERT'),
-      key: this.config_service.get('WALLET_KEY'),
-      rejectUnauthorized: false,
-    });
-
     if (this.config_service.get_bool('WALLET_ENABLED')) {
+      try {
+        this.config_service.get('WALLET_CERT');
+      } catch {
+        this.config_service.set(
+          'WALLET_CERT',
+          readFileSync(
+            this.config_service.get(
+              'WALLET_CERT_PATH',
+              `${process.env.HOME}/.chia/mainnet/config/ssl/wallet/private_wallet.crt`,
+            ),
+          ).toString(),
+        );
+      }
+
+      try {
+        this.config_service.get('WALLET_KEY');
+      } catch {
+        this.config_service.set(
+          'WALLET_KEY',
+          readFileSync(
+            this.config_service.get(
+              'WALLET_KEY_PATH',
+              `${process.env.HOME}/.chia/mainnet/config/ssl/wallet/private_wallet.key`,
+            ),
+          ).toString(),
+        );
+      }
+
+      this.https_agent = new Agent({
+        cert: this.config_service.get('WALLET_CERT'),
+        key: this.config_service.get('WALLET_KEY'),
+        rejectUnauthorized: false,
+      });
+
       this.logger.log('Setup wallet metrics');
 
       this.chia_wallet_synced = new Gauge({

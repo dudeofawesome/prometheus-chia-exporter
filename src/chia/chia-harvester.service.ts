@@ -19,41 +19,41 @@ export class ChiaHarvesterService {
     private http_service: HttpService,
     private config_service: ConfigService,
   ) {
-    try {
-      this.config_service.get('HARVESTER_CERT');
-    } catch {
-      this.config_service.set(
-        'HARVESTER_CERT',
-        readFileSync(
-          this.config_service.get(
-            'HARVESTER_CERT_PATH',
-            `${process.env.HOME}/.chia/mainnet/config/ssl/harvester/private_harvester.crt`,
-          ),
-        ).toString(),
-      );
-    }
-
-    try {
-      this.config_service.get('HARVESTER_KEY');
-    } catch {
-      this.config_service.set(
-        'HARVESTER_KEY',
-        readFileSync(
-          this.config_service.get(
-            'HARVESTER_KEY_PATH',
-            `${process.env.HOME}/.chia/mainnet/config/ssl/harvester/private_harvester.key`,
-          ),
-        ).toString(),
-      );
-    }
-
-    this.https_agent = new Agent({
-      cert: this.config_service.get('HARVESTER_CERT'),
-      key: this.config_service.get('HARVESTER_KEY'),
-      rejectUnauthorized: false,
-    });
-
     if (this.config_service.get_bool('HARVESTER_ENABLED')) {
+      try {
+        this.config_service.get('HARVESTER_CERT');
+      } catch {
+        this.config_service.set(
+          'HARVESTER_CERT',
+          readFileSync(
+            this.config_service.get(
+              'HARVESTER_CERT_PATH',
+              `${process.env.HOME}/.chia/mainnet/config/ssl/harvester/private_harvester.crt`,
+            ),
+          ).toString(),
+        );
+      }
+
+      try {
+        this.config_service.get('HARVESTER_KEY');
+      } catch {
+        this.config_service.set(
+          'HARVESTER_KEY',
+          readFileSync(
+            this.config_service.get(
+              'HARVESTER_KEY_PATH',
+              `${process.env.HOME}/.chia/mainnet/config/ssl/harvester/private_harvester.key`,
+            ),
+          ).toString(),
+        );
+      }
+
+      this.https_agent = new Agent({
+        cert: this.config_service.get('HARVESTER_CERT'),
+        key: this.config_service.get('HARVESTER_KEY'),
+        rejectUnauthorized: false,
+      });
+
       this.logger.log('Setup harvester metrics');
 
       this.chia_harvester_plot_count = new Gauge({

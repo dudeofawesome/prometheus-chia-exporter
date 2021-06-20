@@ -18,41 +18,41 @@ export class ChiaFarmerService {
     private http_service: HttpService,
     private config_service: ConfigService,
   ) {
-    try {
-      this.config_service.get('FARMER_CERT');
-    } catch {
-      this.config_service.set(
-        'FARMER_CERT',
-        readFileSync(
-          this.config_service.get(
-            'FARMER_CERT_PATH',
-            `${process.env.HOME}/.chia/mainnet/config/ssl/farmer/private_farmer.crt`,
-          ),
-        ).toString(),
-      );
-    }
-
-    try {
-      this.config_service.get('FARMER_KEY');
-    } catch {
-      this.config_service.set(
-        'FARMER_KEY',
-        readFileSync(
-          this.config_service.get(
-            'FARMER_KEY_PATH',
-            `${process.env.HOME}/.chia/mainnet/config/ssl/farmer/private_farmer.key`,
-          ),
-        ).toString(),
-      );
-    }
-
-    this.https_agent = new Agent({
-      cert: this.config_service.get('FARMER_CERT'),
-      key: this.config_service.get('FARMER_KEY'),
-      rejectUnauthorized: false,
-    });
-
     if (this.config_service.get_bool('FARMER_ENABLED')) {
+      try {
+        this.config_service.get('FARMER_CERT');
+      } catch {
+        this.config_service.set(
+          'FARMER_CERT',
+          readFileSync(
+            this.config_service.get(
+              'FARMER_CERT_PATH',
+              `${process.env.HOME}/.chia/mainnet/config/ssl/farmer/private_farmer.crt`,
+            ),
+          ).toString(),
+        );
+      }
+
+      try {
+        this.config_service.get('FARMER_KEY');
+      } catch {
+        this.config_service.set(
+          'FARMER_KEY',
+          readFileSync(
+            this.config_service.get(
+              'FARMER_KEY_PATH',
+              `${process.env.HOME}/.chia/mainnet/config/ssl/farmer/private_farmer.key`,
+            ),
+          ).toString(),
+        );
+      }
+
+      this.https_agent = new Agent({
+        cert: this.config_service.get('FARMER_CERT'),
+        key: this.config_service.get('FARMER_KEY'),
+        rejectUnauthorized: false,
+      });
+
       this.logger.log('Setup farmer metrics');
 
       this.chia_farmer_signage_point_proofs = new Gauge({
