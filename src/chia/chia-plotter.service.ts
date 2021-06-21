@@ -118,19 +118,16 @@ export class ChiaPlotterService {
                   ),
                 );
 
-              for (let container of containers) {
-                console.log(container.top);
-              }
-
               const pid = plot.pid.toString();
               const container_info = containers.find(
                 container => container.top.Processes[0][1] === pid,
               );
               if (container_info != null) {
-                extra_info.log_contents = await this.docker
-                  .getContainer(container_info.Id)
-                  .logs({ stdout: true, stderr: true })
-                  .toString();
+                extra_info.log_contents = (
+                  (await this.docker
+                    .getContainer(container_info.Id)
+                    .logs({ stdout: true, stderr: true })) as unknown as Buffer
+                ).toString();
 
                 const host_tmp = container_info.Mounts.find(
                   mount => relative(mount.Destination, plot.tmp) === '',
@@ -143,6 +140,7 @@ export class ChiaPlotterService {
                 if (host_dst) plot.dst = host_dst;
 
                 const split_logs = extra_info.log_contents.split('\n');
+
                 extra_info.id = this.find_madmax_plot_id(split_logs);
                 extra_info.phase = this.find_madmax_plot_phase(split_logs);
               } else {
@@ -272,10 +270,19 @@ export class ChiaPlotterService {
   }
 
   private find_madmax_plot_id(log_lines: ReadonlyArray<string>): string {
-    const line = log_lines.find(line => line.startsWith('Plot Name:'));
+    // const line = log_lines.find(line => line.includes('Plot Name:'));
+    let line: string | void;
+    for (let i = log_lines.length - 1; i >= 0; i--) {
+      if (log_lines[i].includes('Plot Name:')) {
+        line = log_lines[i];
+        break;
+      }
+    }
+
     const match = line?.match(
       /Plot Name: plot-k\d+-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-([0-9a-f]+)/,
     );
+
     if (match != null) {
       return match[1];
     } else {
@@ -290,18 +297,24 @@ export class ChiaPlotterService {
 
     // find major phase by searching backwards for 'Starting phase X/4'
     for (let i = log_lines.length - 1; i >= 0; i--) {
-      if (log_lines[i].startsWith('Phase ')) {
-        // Look for phase end summary
+      if (log_lines[i].includes('Plot Name:')) {
+        major_phase_line = i;
+        major_phase = 1;
+        break;
+      } else {
         const phase_match = log_lines[i].match(/Phase (\d) took/);
         if (phase_match != null) {
-          // add 1 because that's the end of the last phase
-          major_phase_line = i + 1;
-          // add 1 because we're actually on the next phase
-          major_phase = parseInt(phase_match[1]) + 1;
-          // cap at 4 since we could check in as the final plot summary is
-          // being written
-          if (major_phase > 4) major_phase = 4;
-          break;
+          // Look for phase end summary
+          if (phase_match != null) {
+            // add 1 because that's the end of the last phase
+            major_phase_line = i + 1;
+            // add 1 because we're actually on the next phase
+            major_phase = parseInt(phase_match[1]) + 1;
+            // cap at 4 since we could check in as the final plot summary is
+            // being written
+            if (major_phase > 4) major_phase = 4;
+            break;
+          }
         }
       }
     }
@@ -314,13 +327,13 @@ export class ChiaPlotterService {
       let search_regex: RegExp;
       switch (major_phase) {
         case 1:
-          search_regex = /[P1] Table (\d+)/;
+          search_regex = /\[P1\] Table (\d+)/;
           break;
         case 2:
-          search_regex = /[P2] Table (\d+) scan/;
+          search_regex = /\[P2\] Table (\d+) scan/;
           break;
         case 3:
-          search_regex = /[P3-1] Table (\d+) took/;
+          search_regex = /\[P3-1\] Table (\d+) took/;
           break;
         default:
           throw new Error(
