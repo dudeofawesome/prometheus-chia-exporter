@@ -51,12 +51,6 @@ export class ChiaPlotterService {
 
   public async update_metrics(): Promise<void> {
     if (this.config_service.get_bool('PLOTTER_ENABLED')) {
-      // const plots = (await ps_list({ all: true }))
-      //   .filter(
-      //     proc =>
-      //       proc.cmd?.match(/(python.*chia plots create|\S*chia_plot)/) != null,
-      //   )
-      //   .map(proc => this.parse_plot_info(proc));
       const proc_dir = this.config_service.get('PROC_DIR', '/proc');
 
       const plots = await readdir(proc_dir, { withFileTypes: true }).then(
@@ -65,30 +59,17 @@ export class ChiaPlotterService {
             dir => dir.isDirectory() && dir.name.match(/^[0-9]+$/),
           );
 
-          const dir_proms = await Promise.all(
-            (
-              await Promise.all(
-                dirs.map(dir =>
-                  readlink(join(proc_dir, dir.name, 'exe'))
-                    .then(cmd => ({
-                      cmd,
-                      pid: parseInt(dir.name),
-                    }))
-                    .catch(e => null),
-                ),
-              )
-            )
-              .filter(
-                (prom): prom is { cmd: string; pid: number } => prom != null,
-              )
-              .map(prom =>
-                readFile(join(proc_dir, prom.pid.toString(), 'cmdline')).then(
-                  buf => ({
-                    cmd: buf.toString().replace(/\0/g, ' '),
-                    pid: prom.pid,
-                  }),
-                ),
+          const dir_proms = (
+            await Promise.all(
+              dirs.map(dir =>
+                readFile(join(proc_dir, dir.name, 'cmdline')).then(buf => ({
+                  cmd: buf.toString().replace(/\0/g, ' '),
+                  pid: parseInt(dir.name),
+                })),
               ),
+            )
+          ).filter(
+            (prom): prom is { cmd: string; pid: number } => prom != null,
           );
 
           return dir_proms
