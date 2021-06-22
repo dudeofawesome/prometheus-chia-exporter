@@ -382,7 +382,7 @@ export class ChiaPlotterService {
         if (phase_match != null) {
           switch (major_phase) {
             case 1:
-              minor_phase = parseInt(phase_match[1]);
+              minor_phase = parseInt(phase_match[1]) + 1;
               break;
             case 2:
               minor_phase = 8 - parseInt(phase_match[1]);
