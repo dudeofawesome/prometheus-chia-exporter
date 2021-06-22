@@ -1,7 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Gauge, Counter } from 'prom-client';
-import * as ps_list from 'ps-list';
-import { ProcessDescriptor } from 'ps-list';
 import { exec as execAsync } from 'child_process';
 import { readFile, readdir, readlink } from 'fs/promises';
 import { relative, join, basename } from 'path';
