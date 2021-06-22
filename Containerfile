@@ -35,6 +35,8 @@ COPY --from=builder /home/chiaprom/app/yarn.lock .
 COPY --from=builder /home/chiaprom/app/eslint ./eslint
 COPY --from=builder /home/chiaprom/app/dist ./dist
 
+ENV PROC_DIR=/host/proc
+
 RUN yarn install --production --frozen-lockfile --non-interactive
 CMD yarn run start:prod
 

@@ -3,8 +3,8 @@ import { Gauge, Counter } from 'prom-client';
 import * as ps_list from 'ps-list';
 import { ProcessDescriptor } from 'ps-list';
 import { exec as execAsync } from 'child_process';
-import { readFile } from 'fs/promises';
-import { relative } from 'path';
+import { readFile, readdir, readlink } from 'fs/promises';
+import { relative, join, basename } from 'path';
 import { promisify } from 'util';
 const exec = promisify(execAsync);
 import * as Docker from 'dockerode';
@@ -53,12 +53,55 @@ export class ChiaPlotterService {
 
   public async update_metrics(): Promise<void> {
     if (this.config_service.get_bool('PLOTTER_ENABLED')) {
-      const plots = (await ps_list({ all: true }))
-        .filter(
-          proc =>
-            proc.cmd?.match(/(python.*chia plots create|\S*chia_plot)/) != null,
-        )
-        .map(proc => this.parse_plot_info(proc));
+      // const plots = (await ps_list({ all: true }))
+      //   .filter(
+      //     proc =>
+      //       proc.cmd?.match(/(python.*chia plots create|\S*chia_plot)/) != null,
+      //   )
+      //   .map(proc => this.parse_plot_info(proc));
+      const proc_dir = this.config_service.get('PROC_DIR', '/proc');
+
+      const plots = await readdir(proc_dir, { withFileTypes: true }).then(
+        async entities => {
+          const dirs = entities.filter(
+            dir => dir.isDirectory() && dir.name.match(/^[0-9]+$/),
+          );
+
+          const dir_proms = await Promise.all(
+            (
+              await Promise.all(
+                dirs.map(dir =>
+                  readlink(join(proc_dir, dir.name, 'exe'))
+                    .then(cmd => ({
+                      cmd,
+                      pid: parseInt(dir.name),
+                    }))
+                    .catch(e => null),
+                ),
+              )
+            )
+              .filter(
+                (prom): prom is { cmd: string; pid: number } => prom != null,
+              )
+              .map(prom =>
+                readFile(join(proc_dir, prom.pid.toString(), 'cmdline')).then(
+                  buf => ({
+                    cmd: buf.toString().replace(/\0/g, ' '),
+                    pid: prom.pid,
+                  }),
+                ),
+              ),
+          );
+
+          return dir_proms
+            .filter(
+              dir =>
+                dir.cmd.match(/(python.*chia plots create|\S*chia_plot)/) !=
+                null,
+            )
+            .map(proc => this.parse_plot_info(proc));
+        },
+      );
 
       this.chia_plots_in_prog.set(plots.length);
 
@@ -174,11 +217,7 @@ export class ChiaPlotterService {
     }
   }
 
-  private parse_plot_info(proc: ProcessDescriptor) {
-    if (proc.cmd == null) {
-      throw new Error(`Windows is not supported at this time`);
-    }
-
+  private parse_plot_info(proc: { cmd: string; pid: number }) {
     let plotter: 'official' | 'madmax' = 'official';
     if (proc.cmd.match(/\S*chia_plot/)) {
       plotter = 'madmax';

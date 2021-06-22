@@ -64,6 +64,11 @@ WALLET_HOST=localhost
 WALLET_PORT=9256
 WALLET_KEY_PATH=/home/dudeofawesome/.chia/mainnet/config/ssl/wallet/private_wallet.key
 WALLET_CERT_PATH=/home/dudeofawesome/.chia/mainnet/config/ssl/wallet/private_wallet.crt
+
+PLOTTER_ENABLED=true
+PLOT_LOGS=/var/log/chia
+DOCKER_SOCKET=/var/run/docker.sock
+PROC_DIR=/host/proc
 ```
 
 ```bash
