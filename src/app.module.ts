@@ -5,7 +5,6 @@ import {
   NestModule,
 } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
-import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './app.controller';
 import { PrometheusModule } from './prometheus/prometheus.module';
@@ -17,7 +16,6 @@ import { ChiaModule } from './chia/chia.module';
   imports: [
     HttpModule,
     TerminusModule,
-    ScheduleModule.forRoot(),
 
     ChiaModule,
     ConfigModule,
