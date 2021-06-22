@@ -3,10 +3,13 @@ FROM docker.io/library/node:14 AS builder
 
 LABEL maintainer="louis@orleans.io"
 
-RUN useradd --create-home chiaprom
+ENV APP_DIR=~/app
+
+RUN useradd chiaprom
+RUN mkdir -p "$APP_DIR"; \
+    chown chiaprom "$APP_DIR";
 USER chiaprom
-RUN mkdir /home/chiaprom/app
-WORKDIR /home/chiaprom/app
+WORKDIR "$APP_DIR"
 
 COPY package.json .
 COPY yarn.lock .
@@ -18,22 +21,25 @@ RUN yarn run build
 # run stage
 FROM docker.io/library/node:14
 
-# user-configurable vars
+ENV APP_DIR=~/app
+# ENV DOCKER_GID=470
 ENV PORT=9133
 EXPOSE $PORT/tcp
 
-RUN useradd --create-home chiaprom
-USER chiaprom
-RUN mkdir /home/chiaprom/app
-WORKDIR /home/chiaprom/app
+RUN useradd chiaprom
+# RUN usermod -aG $DOCKER_GID chiaprom
+RUN mkdir -p "$APP_DIR"; \
+    chown chiaprom "$APP_DIR";
+# USER chiaprom
+WORKDIR "$APP_DIR"
 
-COPY --from=builder /home/chiaprom/app/README.md .
-COPY --from=builder /home/chiaprom/app/Containerfile .
-COPY --from=builder /home/chiaprom/app/package.json .
-COPY --from=builder /home/chiaprom/app/yarn.lock .
+COPY --from=builder "$APP_DIR/README.md" .
+COPY --from=builder "$APP_DIR/Containerfile" .
+COPY --from=builder "$APP_DIR/package.json" .
+COPY --from=builder "$APP_DIR/yarn.lock" .
 # TODO: figure out how to get yarn to not need this since it's a dev dependency
-COPY --from=builder /home/chiaprom/app/eslint ./eslint
-COPY --from=builder /home/chiaprom/app/dist ./dist
+COPY --from=builder "$APP_DIR/eslint" ./eslint
+COPY --from=builder "$APP_DIR/dist" ./dist
 
 ENV PROC_DIR=/host/proc
 
