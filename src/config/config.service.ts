@@ -10,10 +10,8 @@ export class ConfigService {
 
   private constructor(file_path: string) {
     if (existsSync(file_path)) {
-      console.log(`${file_path} exists`);
       this.env_config = parse(readFileSync(file_path));
     } else {
-      console.log(`${file_path} doesn't exist`);
       this.env_config = {};
     }
   }
