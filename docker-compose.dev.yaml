@@ -2,7 +2,14 @@ version: '3'
 
 services:
   prometheus-chia-exporter:
+    container_name: prometheus-chia-exporter
     build:
       context: './'
       dockerfile: './Containerfile'
     env_file: 'development.env'
+    volumes:
+      - '/var/log/chia:/var/log/chia:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - '/proc:/host/proc:ro'
+    ports:
+      - '9133:9133/tcp'
