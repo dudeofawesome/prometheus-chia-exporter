@@ -55,52 +55,52 @@ export class ChiaFarmerService {
 
       this.logger.log('Setup farmer metrics');
 
-      this.chia_farmer_signage_point_proofs = new Gauge({
-        name: 'chia_farmer_signage_point_proofs',
-        help: `Not 100% sure what this is, but maybe it's wins?`,
-        labelNames: [
-          'challenge_chain',
-          'challenge_hash',
-        ] as ReadonlyArray<string>,
-      });
+      // this.chia_farmer_signage_point_proofs = new Gauge({
+      //   name: 'chia_farmer_signage_point_proofs',
+      //   help: `Not 100% sure what this is, but maybe it's challenges?`,
+      //   labelNames: [
+      //     'challenge_chain',
+      //     'challenge_hash',
+      //   ] as ReadonlyArray<string>,
+      // });
     }
   }
 
   public async update_metrics(): Promise<void> {
     if (this.config_service.get_bool('FARMER_ENABLED')) {
-      const root_url =
-        'https://' +
-        this.config_service.get('FARMER_HOST', 'localhost') +
-        ':' +
-        this.config_service.get('FARMER_PORT', '8559');
-
-      await this.http_service
-        .post<ChiaSignagePoints>(
-          `${root_url}/get_signage_points`,
-          {},
-          { httpsAgent: this.https_agent },
-        )
-        .pipe(
-          map(res => {
-            if (!res.data.success) {
-              throw new Error(`Couldn't retrieve ${res.request.path}`);
-            } else {
-              return res.data.signage_points;
-            }
-          }),
-        )
-        .toPromise()
-        .then(signage_points => {
-          for (const point of signage_points) {
-            this.chia_farmer_signage_point_proofs.set(
-              {
-                challenge_chain: point.signage_point.challenge_chain_sp,
-                challenge_hash: point.signage_point.challenge_hash,
-              },
-              point.proofs.length,
-            );
-          }
-        });
+      // const root_url =
+      //   'https://' +
+      //   this.config_service.get('FARMER_HOST', 'localhost') +
+      //   ':' +
+      //   this.config_service.get('FARMER_PORT', '8559');
+      //
+      // await this.http_service
+      //   .post<ChiaSignagePoints>(
+      //     `${root_url}/get_signage_points`,
+      //     {},
+      //     { httpsAgent: this.https_agent },
+      //   )
+      //   .pipe(
+      //     map(res => {
+      //       if (!res.data.success) {
+      //         throw new Error(`Couldn't retrieve ${res.request.path}`);
+      //       } else {
+      //         return res.data.signage_points;
+      //       }
+      //     }),
+      //   )
+      //   .toPromise()
+      //   .then(signage_points => {
+      //     for (const point of signage_points) {
+      //       this.chia_farmer_signage_point_proofs.set(
+      //         {
+      //           challenge_chain: point.signage_point.challenge_chain_sp,
+      //           challenge_hash: point.signage_point.challenge_hash,
+      //         },
+      //         point.proofs.length,
+      //       );
+      //     }
+      //   });
     }
   }
 }
