@@ -95,14 +95,14 @@ export class ChiaWalletService {
         this.config_service.get('WALLET_PORT', '9256');
 
       await Promise.all([
-        this.get_sync_status(root_url),
-        this.get_farmed_amount(root_url),
-        this.get_transaction_count(root_url),
+        this.update_sync_status(root_url),
+        this.update_farmed_amount(root_url),
+        this.update_transaction_count(root_url),
       ]);
     }
   }
 
-  private get_sync_status(root_url: string): Promise<void> {
+  private update_sync_status(root_url: string): Promise<void> {
     return this.http_service
       .post<ChiaWalletSyncStatus>(
         `${root_url}/get_sync_status`,
@@ -125,7 +125,7 @@ export class ChiaWalletService {
       });
   }
 
-  private get_farmed_amount(root_url: string): Promise<void> {
+  private update_farmed_amount(root_url: string): Promise<void> {
     return this.http_service
       .post<ChiaWalletFarmedAmount>(
         `${root_url}/get_farmed_amount`,
@@ -147,7 +147,7 @@ export class ChiaWalletService {
       });
   }
 
-  private get_transaction_count(root_url: string): Promise<void> {
+  private update_transaction_count(root_url: string): Promise<void[]> {
     return this.http_service
       .post<ChiaWallets>(
         `${root_url}/get_wallets`,
