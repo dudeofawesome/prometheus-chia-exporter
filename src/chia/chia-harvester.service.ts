@@ -19,7 +19,7 @@ export class ChiaHarvesterService {
     private http_service: HttpService,
     private config_service: ConfigService,
   ) {
-    if (this.config_service.get_bool('HARVESTER_ENABLED')) {
+    if (this.config_service.get_bool('HARVESTER_ENABLED', false)) {
       try {
         this.config_service.get('HARVESTER_CERT');
       } catch {
@@ -69,7 +69,7 @@ export class ChiaHarvesterService {
   }
 
   public async update_metrics(): Promise<void> {
-    if (this.config_service.get_bool('HARVESTER_ENABLED')) {
+    if (this.config_service.get_bool('HARVESTER_ENABLED', false)) {
       const root_url =
         'https://' +
         this.config_service.get('HARVESTER_HOST', 'localhost') +

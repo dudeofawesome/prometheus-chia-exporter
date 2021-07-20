@@ -26,7 +26,7 @@ export class ChiaWalletService {
     private http_service: HttpService,
     private config_service: ConfigService,
   ) {
-    if (this.config_service.get_bool('WALLET_ENABLED')) {
+    if (this.config_service.get_bool('WALLET_ENABLED', false)) {
       try {
         this.config_service.get('WALLET_CERT');
       } catch {
@@ -87,7 +87,7 @@ export class ChiaWalletService {
   }
 
   public async update_metrics(): Promise<void> {
-    if (this.config_service.get_bool('WALLET_ENABLED')) {
+    if (this.config_service.get_bool('WALLET_ENABLED', false)) {
       const root_url =
         'https://' +
         this.config_service.get('WALLET_HOST', 'localhost') +
@@ -196,7 +196,6 @@ export class ChiaWalletService {
         }),
       )
       .pipe(concatAll())
-      .toPromise()
-      .then();
+      .toPromise();
   }
 }

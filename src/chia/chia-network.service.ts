@@ -20,7 +20,7 @@ export class ChiaNetworkService {
     private http_service: HttpService,
     private config_service: ConfigService,
   ) {
-    if (this.config_service.get_bool('FULL_NODE_ENABLED')) {
+    if (this.config_service.get_bool('FULL_NODE_ENABLED', false)) {
       try {
         this.config_service.get('FULL_NODE_CERT');
       } catch {
@@ -75,7 +75,7 @@ export class ChiaNetworkService {
   }
 
   public async update_metrics(): Promise<void> {
-    if (this.config_service.get_bool('FULL_NODE_ENABLED')) {
+    if (this.config_service.get_bool('FULL_NODE_ENABLED', false)) {
       const root_url =
         'https://' +
         this.config_service.get('FULL_NODE_HOST', 'localhost') +

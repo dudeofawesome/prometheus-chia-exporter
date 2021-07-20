@@ -18,7 +18,7 @@ export class ChiaFarmerService {
     private http_service: HttpService,
     private config_service: ConfigService,
   ) {
-    if (this.config_service.get_bool('FARMER_ENABLED')) {
+    if (this.config_service.get_bool('FARMER_ENABLED', false)) {
       try {
         this.config_service.get('FARMER_CERT');
       } catch {
@@ -67,7 +67,7 @@ export class ChiaFarmerService {
   }
 
   public async update_metrics(): Promise<void> {
-    if (this.config_service.get_bool('FARMER_ENABLED')) {
+    if (this.config_service.get_bool('FARMER_ENABLED', false)) {
       // const root_url =
       //   'https://' +
       //   this.config_service.get('FARMER_HOST', 'localhost') +

@@ -20,7 +20,7 @@ export class ChiaPlotterService {
   private chia_plot_phase: Gauge<string>;
 
   constructor(private config_service: ConfigService) {
-    if (this.config_service.get_bool('PLOTTER_ENABLED')) {
+    if (this.config_service.get_bool('PLOTTER_ENABLED', false)) {
       this.logger.log('Setup plotter metrics');
 
       this.docker = new Docker({
@@ -50,7 +50,7 @@ export class ChiaPlotterService {
   }
 
   public async update_metrics(): Promise<void> {
-    if (this.config_service.get_bool('PLOTTER_ENABLED')) {
+    if (this.config_service.get_bool('PLOTTER_ENABLED', false)) {
       const proc_dir = this.config_service.get('PROC_DIR', '/proc');
 
       const plots = await readdir(proc_dir, { withFileTypes: true }).then(
